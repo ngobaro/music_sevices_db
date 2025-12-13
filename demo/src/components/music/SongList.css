@@ -1,93 +1,41 @@
-.song-list {
+/* SongList.css - Phiên bản đơn giản */
+.song-list-container {
+  padding: 20px;
+  background: linear-gradient(to bottom, #121212, #000);
+  min-height: 100vh;
+}
+
+.song-list-title {
+  color: white;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 30px;
+}
+
+.song-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 24px;
   width: 100%;
 }
 
-.song-list-header {
-  display: grid;
-  grid-template-columns: 40px 2fr 1fr 100px 80px;
-  gap: 16px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  font-size: 12px;
-  text-transform: uppercase;
+/* Responsive grid */
+@media (max-width: 1200px) {
+  .song-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  }
 }
 
-.song-list-item {
-  display: grid;
-  grid-template-columns: 40px 2fr 1fr 100px 80px;
-  gap: 16px;
-  padding: 12px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  align-items: center;
+@media (max-width: 768px) {
+  .song-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 16px;
+  }
 }
 
-.song-list-item:hover {
-  background-color: var(--bg-hover);
-}
-
-.song-list-item.playing {
-  background-color: var(--bg-hover);
-  color: var(--primary-color);
-}
-
-.col-number {
-  text-align: center;
-  color: var(--text-secondary);
-}
-
-.col-title {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.col-title img {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
-.col-title h4 {
-  font-size: 14px;
-  margin-bottom: 4px;
-}
-
-.col-title p {
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.col-album,
-.col-duration {
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.col-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-
-.song-list-item:hover .col-actions {
-  opacity: 1;
-}
-
-.btn-action {
-  background: none;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 4px;
-  transition: color 0.2s;
-}
-
-.btn-action:hover {
-  color: var(--text-primary);
+@media (max-width: 480px) {
+  .song-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 12px;
+  }
 }

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { login } from '../services/authService';
+import { ROUTES } from '../utils/constants';
 import './AuthPages.css';
 
 function LoginPage() {
@@ -9,26 +11,26 @@ function LoginPage() {
     password: ''
   });
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
-    // Mock authentication - Kiểm tra username và password
-    if (formData.username === 'admin' && formData.password === 'admin') {
-      // Đăng nhập thành công
-      localStorage.setItem('token', 'mock-token-123');
-      localStorage.setItem('user', JSON.stringify({
-        username: formData.username,
-        name: 'Admin User'
-      }));
+    try {
+      const response = await login(formData.username, formData.password);
       
-      alert('Đăng nhập thành công!');
-      navigate('/');
-      window.location.reload();
-    } else {
-      // Đăng nhập thất bại
-      setError('Username hoặc password không đúng!');
+      if (response.success && response.token) {
+        alert('Đăng nhập thành công!');
+        navigate(ROUTES.HOME);
+      } else {
+        setError(response.error); // Đã là string từ service
+      }
+    } catch (err) {
+      setError(err.message || 'Có lỗi xảy ra!');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,11 +40,7 @@ function LoginPage() {
         <h1>🎵 Music Web</h1>
         <h2>Đăng nhập</h2>
         
-        {error && (
-          <div className="error-message">
-            {error}
-          </div>
-        )}
+        {error && <div className="error-message">{error}</div>}
         
         <form onSubmit={handleSubmit}>
           <div className="form-group">
@@ -51,9 +49,9 @@ function LoginPage() {
               type="text"
               value={formData.username}
               onChange={(e) => setFormData({...formData, username: e.target.value})}
-              placeholder="Nhập username"
+              placeholder="admin"
               required
-              autoComplete="username"
+              disabled={loading}
             />
           </div>
           
@@ -63,22 +61,16 @@ function LoginPage() {
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({...formData, password: e.target.value})}
-              placeholder="Nhập password"
+              placeholder="admin"
               required
-              autoComplete="current-password"
+              disabled={loading}
             />
           </div>
           
-          <button type="submit" className="btn-submit">
-            Đăng nhập
+          <button type="submit" disabled={loading}>
+            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
           </button>
         </form>
-        
-        {/* <div className="demo-credentials">
-          <p>🔑 Tài khoản demo:</p>
-          <p><strong>Username:</strong> admin</p>
-          <p><strong>Password:</strong> admin</p>
-        </div> */}
         
         <p className="auth-link">
           Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>

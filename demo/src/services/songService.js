@@ -1,36 +1,46 @@
 import api from './api';
+import { API_ENDPOINTS } from '../utils/constants';
 
+// Lấy tất cả bài hát
 export const getAllSongs = async (params = {}) => {
-  const response = await api.get('/songs', { params });
+  const response = await api.get(API_ENDPOINTS.SONGS, { params });
   return response.data;
 };
 
+// Lấy bài hát theo ID
 export const getSongById = async (id) => {
-  const response = await api.get(`/songs/${id}`);
+  const response = await api.get(API_ENDPOINTS.SONG_BY_ID(id));
   return response.data;
 };
 
+// Tìm kiếm bài hát (nếu backend support search param)
 export const searchSongs = async (query) => {
-  const response = await api.get('/songs/search', { 
-    params: { q: query } 
+  const response = await api.get(API_ENDPOINTS.SONGS, {
+    params: { search: query }
   });
   return response.data;
 };
 
-export const getTrendingSongs = async () => {
-  const response = await api.get('/songs/trending');
+// Tạo bài hát mới
+export const createSong = async (data) => {
+  const response = await api.post(API_ENDPOINTS.SONGS, data);
   return response.data;
 };
 
-export const getSongsByGenre = async (genre) => {
-  const response = await api.get(`/songs/genre/${genre}`);
+// Cập nhật bài hát
+export const updateSong = async (id, data) => {
+  const response = await api.put(API_ENDPOINTS.SONG_BY_ID(id), data);
   return response.data;
 };
 
-export const getSongStreamUrl = (songId) => {
-  return `${api.defaults.baseURL}/songs/${songId}/stream`;
+// Xóa bài hát
+export const deleteSong = async (id) => {
+  const response = await api.delete(API_ENDPOINTS.SONG_BY_ID(id));
+  return response.data;
 };
 
-export const incrementPlayCount = async (songId) => {
-  await api.post(`/songs/${songId}/play`);
+// Lấy thông tin bài hát của tôi
+export const getMySongs = async () => {
+  const response = await api.get(API_ENDPOINTS.SONG_MY_INFO);
+  return response.data;
 };

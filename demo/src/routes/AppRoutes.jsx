@@ -9,6 +9,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import NotFoundPage from '../pages/NotFoundPage';
 import MainLayout from '../components/layout/MainLayout';
+import DashboardPage from '../pages/admin/DashboardPage'; // Uncomment sau khi tạo
 
 function AppRoutes() {
   return (
@@ -20,6 +21,7 @@ function AppRoutes() {
         <Route path="playlist/:id" element={<PlaylistPage />} />
         <Route path="favorites" element={<FavoritesPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="dashboard" element={<DashboardPage />} /> {/* Admin route */}
       </Route>
       
       <Route path="login" element={<LoginPage />} />
