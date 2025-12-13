@@ -1,17 +1,15 @@
 import axios from 'axios';
+import { API_BASE_URL } from '../utils/constants';
 
-// Cấu hình axios chung
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
-
-// Tạo instance axios với cấu hình mặc định
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
+  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-  },
+  }
 });
 
-// Interceptor để thêm token vào header (nếu có)
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -20,19 +18,14 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Interceptor để xử lý response
+// Response interceptor
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token hết hạn, redirect về login
       localStorage.removeItem('token');
       window.location.href = '/login';
     }

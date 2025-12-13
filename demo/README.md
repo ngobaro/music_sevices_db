@@ -1,904 +1,850 @@
-# Hướng dẫn Tổ chức Dự án React + Vite
+# Dự án Web Nghe Nhạc - React + Vite + Spring Boot
 
-## 🎯 Tổng quan kiến trúc
+## 🎵 Tổng quan dự án
+
+Ứng dụng web nghe nhạc online với các tính năng:
+- 🎧 Phát nhạc trực tuyến
+- 📱 Quản lý playlist cá nhân
+- 🔍 Tìm kiếm bài hát, nghệ sĩ, album
+- ❤️ Yêu thích bài hát
+- 👤 Quản lý tài khoản người dùng
+- 🎨 Giao diện thân thiện, responsive
+
+---
+
+## 🎯 Kiến trúc hệ thống
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│                         REACT APPLICATION                         │
-│                                                                   │
-│  ┌────────────┐      ┌──────────────┐      ┌─────────────────┐  │
-│  │   Pages    │ ───> │  Components  │ ───> │  UI Elements    │  │
-│  │ (Screens)  │      │  (Reusable)  │      │ (Button, Card)  │  │
-│  └────────────┘      └──────────────┘      └─────────────────┘  │
-│         │                                                         │
-│         ↓                                                         │
-│  ┌────────────┐      ┌──────────────┐      ┌─────────────────┐  │
-│  │  Services  │ ───> │   API Calls  │ ───> │  Spring Boot    │  │
-│  │  (Logic)   │      │    (Axios)   │      │   Backend API   │  │
-│  └────────────┘      └──────────────┘      └─────────────────┘  │
-│         ↑                                            │            │
-│         │                                            ↓            │
-│  ┌────────────┐      ┌──────────────┐      ┌─────────────────┐  │
-│  │   State    │ <─── │   Response   │ <─── │    Database     │  │
-│  │  (useState)│      │    (JSON)    │      │   (MySQL/...)   │  │
-│  └────────────┘      └──────────────┘      └─────────────────┘  │
-│                                                                   │
-└──────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    MUSIC WEB APPLICATION                         │
+│                                                                  │
+│  ┌──────────────┐     ┌──────────────┐     ┌────────────────┐  │
+│  │ Music Player │ ──> │ Audio Engine │ ──> │  HTML5 Audio   │  │
+│  │   (UI/UX)    │     │   (State)    │     │   API/Stream   │  │
+│  └──────────────┘     └──────────────┘     └────────────────┘  │
+│         ↓                                                        │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │              React Components & Pages                     │  │
+│  │  HomePage | SearchPage | PlaylistPage | ProfilePage      │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│         ↓                                                        │
+│  ┌──────────────┐     ┌──────────────┐     ┌────────────────┐  │
+│  │   Services   │ ──> │  REST API    │ ──> │  Spring Boot   │  │
+│  │  (API Calls) │     │  (axios)     │     │    Backend     │  │
+│  └──────────────┘     └──────────────┘     └────────────────┘  │
+│                                                      ↓           │
+│                                              ┌────────────────┐  │
+│                                              │    Database    │  │
+│                                              │ Songs/Users/   │  │
+│                                              │   Playlists    │  │
+│                                              └────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📁 Cấu trúc thư mục chuẩn
+## 📁 Cấu trúc thư mục cho Web Nhạc
 
 ```
-demo/
+music-web/
 │
-├── node_modules/              # ❌ KHÔNG SỬA - Thư viện tự động
+├── node_modules/
 │
-├── public/                    # 📦 File tĩnh công khai
-│   ├── vite.svg              # Icon mặc định
-│   └── images/               # Hình ảnh tĩnh (logo, banner)
+├── public/
+│   ├── audio/                    # 🎵 File nhạc tĩnh (nếu có)
+│   │   └── samples/
+│   ├── images/
+│   │   ├── covers/              # Ảnh bìa album
+│   │   └── artists/             # Ảnh nghệ sĩ
+│   └── icons/
 │
-├── src/                       # 💻 MÃ NGUỒN CHÍNH - NƠI BẠN CODE
+├── src/
 │   │
-│   ├── assets/               # 🎨 Tài nguyên (ảnh, icon, font)
+│   ├── assets/
 │   │   ├── images/
+│   │   │   ├── default-cover.png    # Ảnh mặc định
+│   │   │   ├── logo.png
+│   │   │   └── background.jpg
 │   │   ├── icons/
+│   │   │   ├── play.svg
+│   │   │   ├── pause.svg
+│   │   │   ├── next.svg
+│   │   │   ├── prev.svg
+│   │   │   └── heart.svg
 │   │   └── styles/
+│   │       └── themes.css
 │   │
-│   ├── components/           # 🧩 Component tái sử dụng
-│   │   ├── common/          # Component dùng chung
+│   ├── components/
+│   │   │
+│   │   ├── common/              # Component dùng chung
 │   │   │   ├── Button.jsx
 │   │   │   ├── Input.jsx
-│   │   │   ├── Card.jsx
-│   │   │   └── Modal.jsx
+│   │   │   ├── SearchBar.jsx
+│   │   │   ├── LoadingSpinner.jsx
+│   │   │   └── ErrorMessage.jsx
 │   │   │
-│   │   ├── layout/          # Layout components
-│   │   │   ├── Header.jsx
-│   │   │   ├── Footer.jsx
-│   │   │   ├── Sidebar.jsx
-│   │   │   └── Navbar.jsx
+│   │   ├── layout/              # Layout chính
+│   │   │   ├── Header.jsx       # Header với search, user menu
+│   │   │   ├── Sidebar.jsx      # Menu: Home, Library, Playlists
+│   │   │   ├── PlayerBar.jsx    # ⭐ Music player ở bottom
+│   │   │   └── Footer.jsx
 │   │   │
-│   │   └── features/        # Component theo tính năng
-│   │       ├── UserCard.jsx
-│   │       ├── ProductItem.jsx
-│   │       └── OrderTable.jsx
+│   │   ├── music/               # 🎵 Components liên quan nhạc
+│   │   │   ├── MusicPlayer.jsx         # Player chính
+│   │   │   ├── PlayerControls.jsx      # Play/Pause/Next/Prev
+│   │   │   ├── ProgressBar.jsx         # Thanh progress
+│   │   │   ├── VolumeControl.jsx       # Điều chỉnh âm lượng
+│   │   │   ├── SongCard.jsx            # Card hiển thị bài hát
+│   │   │   ├── SongList.jsx            # Danh sách bài hát
+│   │   │   ├── AlbumCard.jsx           # Card album
+│   │   │   ├── ArtistCard.jsx          # Card nghệ sĩ
+│   │   │   └── NowPlaying.jsx          # Bài đang phát
+│   │   │
+│   │   ├── playlist/            # Playlist components
+│   │   │   ├── PlaylistCard.jsx
+│   │   │   ├── PlaylistList.jsx
+│   │   │   ├── CreatePlaylist.jsx
+│   │   │   └── AddToPlaylist.jsx
+│   │   │
+│   │   ├── search/              # Tìm kiếm
+│   │   │   ├── SearchInput.jsx
+│   │   │   ├── SearchResults.jsx
+│   │   │   └── SearchFilter.jsx
+│   │   │
+│   │   └── user/                # User components
+│   │       ├── UserProfile.jsx
+│   │       ├── UserAvatar.jsx
+│   │       └── UserMenu.jsx
 │   │
-│   ├── pages/               # 📄 Các trang của ứng dụng
-│   │   ├── HomePage.jsx
-│   │   ├── LoginPage.jsx
-│   │   ├── UserPage.jsx
-│   │   ├── ProductPage.jsx
+│   ├── pages/                   # 📄 Các trang chính
+│   │   ├── HomePage.jsx                # Trang chủ - Trending songs
+│   │   ├── SearchPage.jsx              # Trang tìm kiếm
+│   │   ├── LibraryPage.jsx             # Thư viện của tôi
+│   │   ├── PlaylistPage.jsx            # Chi tiết playlist
+│   │   ├── AlbumPage.jsx               # Chi tiết album
+│   │   ├── ArtistPage.jsx              # Trang nghệ sĩ
+│   │   ├── FavoritesPage.jsx           # Bài hát yêu thích
+│   │   ├── ProfilePage.jsx             # Trang cá nhân
+│   │   ├── LoginPage.jsx               # Đăng nhập
+│   │   ├── RegisterPage.jsx            # Đăng ký
 │   │   └── NotFoundPage.jsx
 │   │
-│   ├── services/            # 🔌 Gọi API Backend
-│   │   ├── api.js          # Cấu hình axios chung
-│   │   ├── authService.js  # API đăng nhập/đăng ký
-│   │   ├── userService.js  # API quản lý user
-│   │   └── productService.js
+│   ├── services/                # 🔌 API Services
+│   │   ├── api.js              # Config axios chung
+│   │   ├── authService.js      # Đăng nhập/đăng ký
+│   │   ├── songService.js      # ⭐ API bài hát
+│   │   ├── playlistService.js  # ⭐ API playlist
+│   │   ├── albumService.js     # API album
+│   │   ├── artistService.js    # API nghệ sĩ
+│   │   ├── userService.js      # API user
+│   │   └── searchService.js    # API tìm kiếm
 │   │
-│   ├── hooks/               # 🪝 Custom React Hooks
-│   │   ├── useAuth.js      # Hook xử lý authentication
-│   │   ├── useFetch.js     # Hook fetch data chung
-│   │   └── useForm.js      # Hook quản lý form
+│   ├── hooks/                   # 🪝 Custom Hooks
+│   │   ├── useAuth.js
+│   │   ├── usePlayer.js        # ⭐ Hook quản lý player
+│   │   ├── usePlaylist.js      # Hook quản lý playlist
+│   │   ├── useAudio.js         # ⭐ Hook xử lý audio
+│   │   ├── useFavorites.js     # Hook yêu thích
+│   │   └── useSearch.js        # Hook tìm kiếm
 │   │
-│   ├── context/             # 🌐 Context API (State global)
-│   │   ├── AuthContext.jsx # Context đăng nhập
-│   │   └── ThemeContext.jsx # Context theme (dark/light)
+│   ├── context/                 # 🌐 Global State
+│   │   ├── AuthContext.jsx     # User authentication
+│   │   ├── PlayerContext.jsx   # ⭐ Player state (đang phát, queue)
+│   │   ├── PlaylistContext.jsx # Playlist state
+│   │   └── ThemeContext.jsx    # Dark/Light mode
 │   │
-│   ├── utils/               # 🛠️ Hàm tiện ích
-│   │   ├── formatDate.js   # Format ngày tháng
-│   │   ├── validation.js   # Validate input
-│   │   ├── constants.js    # Hằng số (API_URL, STATUS...)
-│   │   └── helpers.js      # Các hàm helper khác
+│   ├── utils/                   # 🛠️ Utilities
+│   │   ├── constants.js        # API_URL, AUDIO_FORMAT...
+│   │   ├── formatTime.js       # ⭐ Format duration (3:45)
+│   │   ├── audioHelper.js      # ⭐ Xử lý audio
+│   │   ├── validation.js
+│   │   └── storage.js          # LocalStorage helpers
 │   │
-│   ├── routes/              # 🛣️ Định tuyến (Routing)
-│   │   └── AppRoutes.jsx   # Cấu hình routes
+│   ├── routes/
+│   │   └── AppRoutes.jsx
 │   │
-│   ├── styles/              # 🎨 CSS/SCSS chung
-│   │   ├── global.css      # Style toàn cục
-│   │   ├── variables.css   # CSS variables (màu, font...)
-│   │   └── responsive.css  # Media queries
+│   ├── styles/
+│   │   ├── global.css
+│   │   ├── player.css          # ⭐ Style cho player
+│   │   ├── animations.css      # Animations
+│   │   └── responsive.css
 │   │
-│   ├── App.jsx              # 🏠 Component gốc
-│   ├── App.css              # Style cho App
-│   ├── main.jsx             # ⚡ Entry point (điểm khởi đầu)
-│   └── index.css            # Style global
+│   ├── App.jsx
+│   ├── App.css
+│   ├── main.jsx
+│   └── index.css
 │
-├── .env                      # 🔒 Biến môi trường (API URL, keys)
-├── .env.example              # Ví dụ file .env
-├── .gitignore               # File không commit lên git
-├── package.json             # Quản lý dependencies
-├── vite.config.js           # Cấu hình Vite
-├── eslint.config.js         # Cấu hình ESLint (code quality)
-└── README.md                # Tài liệu dự án
+├── .env
+├── .env.example
+├── .gitignore
+├── package.json
+├── vite.config.js
+└── README.md
 ```
 
 ---
 
-## 🔄 Luồng dữ liệu chi tiết
+## 🎵 Các tính năng chính
 
-### **Luồng 1: Hiển thị dữ liệu từ Backend**
+### 1. **Music Player** (Component quan trọng nhất)
+- Phát/Dừng/Tiếp theo/Trước đó
+- Tua nhanh/lùi
+- Điều chỉnh âm lượng
+- Repeat/Shuffle
+- Hiển thị thời gian phát
+- Progress bar tương tác
 
-```
-[1. User vào trang]
-        ↓
-[2. React Component (Page) mount]
-        ↓
-[3. useEffect() được trigger]
-        ↓
-[4. Gọi function từ Service]
-   ↓ userService.getAllUsers()
-        ↓
-[5. Service gọi Axios]
-   ↓ axios.get('http://localhost:8080/api/users')
-        ↓
-[6. Request đến Spring Boot]
-        ↓
-[7. Spring Boot xử lý]
-   - Controller nhận request
-   - Service xử lý logic
-   - Repository query Database
-        ↓
-[8. Trả về JSON Response]
-        ↓
-[9. Axios nhận response]
-        ↓
-[10. Service trả data về Component]
-        ↓
-[11. Component setState(data)]
-        ↓
-[12. React tự động re-render]
-        ↓
-[13. UI hiển thị dữ liệu mới]
-```
+### 2. **Quản lý Playlist**
+- Tạo playlist mới
+- Thêm/xóa bài hát khỏi playlist
+- Chỉnh sửa tên/mô tả playlist
+- Chia sẻ playlist
 
-### **Ví dụ Code thực tế:**
+### 3. **Tìm kiếm & Lọc**
+- Tìm theo tên bài hát, nghệ sĩ, album
+- Lọc theo thể loại
+- Gợi ý tìm kiếm
 
-#### **Bước 1: Tạo Service (src/services/userService.js)**
+### 4. **Thư viện cá nhân**
+- Bài hát yêu thích
+- Playlist đã tạo
+- Lịch sử nghe nhạc
+- Album đã lưu
+
+### 5. **Xã hội hóa**
+- Follow nghệ sĩ
+- Like bài hát
+- Chia sẻ playlist
+- Bình luận (optional)
+
+---
+
+## 🔧 File quan trọng - PlayerContext.jsx
+
+### **src/context/PlayerContext.jsx**
 ```javascript
-import axios from 'axios';
+import { createContext, useState, useContext, useRef, useEffect } from 'react';
 
-const API_URL = 'http://localhost:8080/api';
+const PlayerContext = createContext();
 
-// Lấy tất cả users
-export const getAllUsers = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/users`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    throw error;
-  }
-};
+export function PlayerProvider({ children }) {
+  const audioRef = useRef(new Audio());
+  
+  const [currentSong, setCurrentSong] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
+  const [queue, setQueue] = useState([]);
+  const [queueIndex, setQueueIndex] = useState(0);
+  const [repeat, setRepeat] = useState(false); // none, one, all
+  const [shuffle, setShuffle] = useState(false);
 
-// Lấy user theo ID
-export const getUserById = async (id) => {
-  const response = await axios.get(`${API_URL}/users/${id}`);
-  return response.data;
-};
+  // Play a song
+  const playSong = (song) => {
+    if (currentSong?.id !== song.id) {
+      setCurrentSong(song);
+      audioRef.current.src = song.audioUrl;
+    }
+    audioRef.current.play();
+    setIsPlaying(true);
+  };
 
-// Tạo user mới
-export const createUser = async (userData) => {
-  const response = await axios.post(`${API_URL}/users`, userData);
-  return response.data;
-};
+  // Pause
+  const pauseSong = () => {
+    audioRef.current.pause();
+    setIsPlaying(false);
+  };
 
-// Cập nhật user
-export const updateUser = async (id, userData) => {
-  const response = await axios.put(`${API_URL}/users/${id}`, userData);
-  return response.data;
-};
+  // Toggle play/pause
+  const togglePlay = () => {
+    if (isPlaying) {
+      pauseSong();
+    } else {
+      audioRef.current.play();
+      setIsPlaying(true);
+    }
+  };
 
-// Xóa user
-export const deleteUser = async (id) => {
-  await axios.delete(`${API_URL}/users/${id}`);
-};
-```
+  // Next song
+  const nextSong = () => {
+    if (queue.length === 0) return;
+    
+    let nextIndex = queueIndex + 1;
+    if (nextIndex >= queue.length) {
+      nextIndex = repeat ? 0 : queueIndex;
+    }
+    
+    setQueueIndex(nextIndex);
+    playSong(queue[nextIndex]);
+  };
 
-#### **Bước 2: Tạo Component (src/components/features/UserCard.jsx)**
-```javascript
-// Component nhỏ, chỉ hiển thị 1 user
-function UserCard({ user, onDelete }) {
+  // Previous song
+  const prevSong = () => {
+    if (queue.length === 0) return;
+    
+    let prevIndex = queueIndex - 1;
+    if (prevIndex < 0) {
+      prevIndex = queue.length - 1;
+    }
+    
+    setQueueIndex(prevIndex);
+    playSong(queue[prevIndex]);
+  };
+
+  // Seek to time
+  const seekTo = (time) => {
+    audioRef.current.currentTime = time;
+    setCurrentTime(time);
+  };
+
+  // Change volume
+  const changeVolume = (vol) => {
+    audioRef.current.volume = vol;
+    setVolume(vol);
+  };
+
+  // Play queue
+  const playQueue = (songs, startIndex = 0) => {
+    setQueue(songs);
+    setQueueIndex(startIndex);
+    playSong(songs[startIndex]);
+  };
+
+  // Audio event listeners
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration);
+    const handleEnded = () => {
+      if (repeat === 'one') {
+        audio.play();
+      } else {
+        nextSong();
+      }
+    };
+
+    audio.addEventListener('timeupdate', updateTime);
+    audio.addEventListener('loadedmetadata', updateDuration);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', updateTime);
+      audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [repeat, queueIndex, queue]);
+
+  const value = {
+    currentSong,
+    isPlaying,
+    currentTime,
+    duration,
+    volume,
+    queue,
+    queueIndex,
+    repeat,
+    shuffle,
+    playSong,
+    pauseSong,
+    togglePlay,
+    nextSong,
+    prevSong,
+    seekTo,
+    changeVolume,
+    playQueue,
+    setRepeat,
+    setShuffle
+  };
+
   return (
-    <div className="user-card">
-      <img src={user.avatar} alt={user.name} />
-      <h3>{user.name}</h3>
-      <p>{user.email}</p>
-      <button onClick={() => onDelete(user.id)}>Xóa</button>
-    </div>
+    <PlayerContext.Provider value={value}>
+      {children}
+    </PlayerContext.Provider>
   );
 }
 
-export default UserCard;
+export function usePlayer() {
+  const context = useContext(PlayerContext);
+  if (!context) {
+    throw new Error('usePlayer must be used within PlayerProvider');
+  }
+  return context;
+}
 ```
 
-#### **Bước 3: Tạo Page (src/pages/UserPage.jsx)**
+---
+
+## 🎵 Component MusicPlayer
+
+### **src/components/music/MusicPlayer.jsx**
 ```javascript
-import { useState, useEffect } from 'react';
-import { getAllUsers, deleteUser } from '../services/userService';
-import UserCard from '../components/features/UserCard';
+import { usePlayer } from '../../context/PlayerContext';
+import PlayerControls from './PlayerControls';
+import ProgressBar from './ProgressBar';
+import VolumeControl from './VolumeControl';
+import { formatTime } from '../../utils/formatTime';
+import './MusicPlayer.css';
 
-function UserPage() {
-  // State lưu danh sách users
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+function MusicPlayer() {
+  const { currentSong, currentTime, duration } = usePlayer();
 
-  // Gọi API khi component load
-  useEffect(() => {
-    fetchUsers();
-  }, []); // [] = chỉ chạy 1 lần khi mount
+  if (!currentSong) {
+    return (
+      <div className="music-player empty">
+        <p>Chọn bài hát để phát</p>
+      </div>
+    );
+  }
 
-  // Function lấy danh sách users
-  const fetchUsers = async () => {
-    try {
-      setLoading(true);
-      const data = await getAllUsers(); // Gọi service
-      setUsers(data); // Cập nhật state
-    } catch (err) {
-      setError('Không thể tải danh sách users');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Function xóa user
-  const handleDelete = async (id) => {
-    if (window.confirm('Bạn có chắc muốn xóa?')) {
-      try {
-        await deleteUser(id); // Gọi API xóa
-        fetchUsers(); // Load lại danh sách
-      } catch (err) {
-        alert('Xóa thất bại!');
-      }
-    }
-  };
-
-  // Hiển thị loading
-  if (loading) return <div>Đang tải...</div>;
-  
-  // Hiển thị lỗi
-  if (error) return <div>{error}</div>;
-
-  // Hiển thị danh sách
   return (
-    <div className="user-page">
-      <h1>Danh sách Users</h1>
-      <div className="user-list">
-        {users.map(user => (
-          <UserCard 
-            key={user.id} 
-            user={user}
-            onDelete={handleDelete}
-          />
-        ))}
+    <div className="music-player">
+      {/* Song Info */}
+      <div className="player-song-info">
+        <img 
+          src={currentSong.coverUrl || '/default-cover.png'} 
+          alt={currentSong.title}
+          className="player-cover"
+        />
+        <div className="player-text">
+          <h4>{currentSong.title}</h4>
+          <p>{currentSong.artist}</p>
+        </div>
+        <button className="btn-favorite">
+          <span className="icon-heart">❤️</span>
+        </button>
+      </div>
+
+      {/* Controls */}
+      <div className="player-controls-section">
+        <PlayerControls />
+        <div className="player-progress">
+          <span className="time">{formatTime(currentTime)}</span>
+          <ProgressBar />
+          <span className="time">{formatTime(duration)}</span>
+        </div>
+      </div>
+
+      {/* Volume & Options */}
+      <div className="player-options">
+        <VolumeControl />
+        <button className="btn-queue">Queue</button>
       </div>
     </div>
   );
 }
 
-export default UserPage;
+export default MusicPlayer;
+```
+
+### **src/components/music/PlayerControls.jsx**
+```javascript
+import { usePlayer } from '../../context/PlayerContext';
+import './PlayerControls.css';
+
+function PlayerControls() {
+  const { 
+    isPlaying, 
+    togglePlay, 
+    nextSong, 
+    prevSong,
+    repeat,
+    shuffle,
+    setRepeat,
+    setShuffle
+  } = usePlayer();
+
+  const handleRepeat = () => {
+    const modes = [false, 'one', 'all'];
+    const currentIndex = modes.indexOf(repeat);
+    const nextIndex = (currentIndex + 1) % modes.length;
+    setRepeat(modes[nextIndex]);
+  };
+
+  return (
+    <div className="player-controls">
+      <button 
+        className={`btn-control ${shuffle ? 'active' : ''}`}
+        onClick={() => setShuffle(!shuffle)}
+        title="Shuffle"
+      >
+        🔀
+      </button>
+
+      <button 
+        className="btn-control btn-prev" 
+        onClick={prevSong}
+        title="Previous"
+      >
+        ⏮️
+      </button>
+
+      <button 
+        className="btn-control btn-play-pause" 
+        onClick={togglePlay}
+        title={isPlaying ? 'Pause' : 'Play'}
+      >
+        {isPlaying ? '⏸️' : '▶️'}
+      </button>
+
+      <button 
+        className="btn-control btn-next" 
+        onClick={nextSong}
+        title="Next"
+      >
+        ⏭️
+      </button>
+
+      <button 
+        className={`btn-control ${repeat ? 'active' : ''}`}
+        onClick={handleRepeat}
+        title={`Repeat: ${repeat || 'off'}`}
+      >
+        {repeat === 'one' ? '🔂' : '🔁'}
+      </button>
+    </div>
+  );
+}
+
+export default PlayerControls;
+```
+
+### **src/components/music/ProgressBar.jsx**
+```javascript
+import { usePlayer } from '../../context/PlayerContext';
+import './ProgressBar.css';
+
+function ProgressBar() {
+  const { currentTime, duration, seekTo } = usePlayer();
+
+  const percentage = duration > 0 ? (currentTime / duration) * 100 : 0;
+
+  const handleSeek = (e) => {
+    const bar = e.currentTarget;
+    const rect = bar.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const percentage = x / rect.width;
+    const time = percentage * duration;
+    seekTo(time);
+  };
+
+  return (
+    <div className="progress-bar" onClick={handleSeek}>
+      <div 
+        className="progress-fill" 
+        style={{ width: `${percentage}%` }}
+      >
+        <div className="progress-handle"></div>
+      </div>
+    </div>
+  );
+}
+
+export default ProgressBar;
 ```
 
 ---
 
-## 📋 Chi tiết từng thư mục
+## 🎵 API Services
 
-### **1. src/services/** - Gọi API Backend
-
-**Mục đích:** Tập trung tất cả logic gọi API ở đây
-
-**Cấu trúc file api.js:**
+### **src/services/songService.js**
 ```javascript
-import axios from 'axios';
-
-// Tạo instance axios với config mặc định
-const api = axios.create({
-  baseURL: 'http://localhost:8080/api',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
-// Interceptor: Tự động thêm token vào mỗi request
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-
-// Interceptor: Xử lý lỗi chung
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Token hết hạn -> logout
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default api;
-```
-
-**Sử dụng api.js trong các service khác:**
-```javascript
-// userService.js
 import api from './api';
 
-export const getAllUsers = async () => {
-  const response = await api.get('/users');
+// Lấy tất cả bài hát
+export const getAllSongs = async (params = {}) => {
+  const response = await api.get('/songs', { params });
   return response.data;
 };
+
+// Lấy bài hát theo ID
+export const getSongById = async (id) => {
+  const response = await api.get(`/songs/${id}`);
+  return response.data;
+};
+
+// Tìm kiếm bài hát
+export const searchSongs = async (query) => {
+  const response = await api.get('/songs/search', { 
+    params: { q: query } 
+  });
+  return response.data;
+};
+
+// Lấy bài hát trending
+export const getTrendingSongs = async () => {
+  const response = await api.get('/songs/trending');
+  return response.data;
+};
+
+// Lấy bài hát theo thể loại
+export const getSongsByGenre = async (genre) => {
+  const response = await api.get(`/songs/genre/${genre}`);
+  return response.data;
+};
+
+// Stream URL cho bài hát
+export const getSongStreamUrl = (songId) => {
+  return `${api.defaults.baseURL}/songs/${songId}/stream`;
+};
+
+// Tăng lượt nghe
+export const incrementPlayCount = async (songId) => {
+  await api.post(`/songs/${songId}/play`);
+};
+```
+
+### **src/services/playlistService.js**
+```javascript
+import api from './api';
+
+// Lấy tất cả playlists của user
+export const getUserPlaylists = async () => {
+  const response = await api.get('/playlists');
+  return response.data;
+};
+
+// Tạo playlist mới
+export const createPlaylist = async (data) => {
+  const response = await api.post('/playlists', data);
+  return response.data;
+};
+
+// Lấy chi tiết playlist
+export const getPlaylistById = async (id) => {
+  const response = await api.get(`/playlists/${id}`);
+  return response.data;
+};
+
+// Thêm bài hát vào playlist
+export const addSongToPlaylist = async (playlistId, songId) => {
+  const response = await api.post(`/playlists/${playlistId}/songs`, {
+    songId
+  });
+  return response.data;
+};
+
+// Xóa bài hát khỏi playlist
+export const removeSongFromPlaylist = async (playlistId, songId) => {
+  await api.delete(`/playlists/${playlistId}/songs/${songId}`);
+};
+
+// Cập nhật playlist
+export const updatePlaylist = async (id, data) => {
+  const response = await api.put(`/playlists/${id}`, data);
+  return response.data;
+};
+
+// Xóa playlist
+export const deletePlaylist = async (id) => {
+  await api.delete(`/playlists/${id}`);
+};
 ```
 
 ---
 
-### **2. src/components/** - Component tái sử dụng
+## 🎨 Utilities
 
-**Nguyên tắc:**
-- Mỗi component làm 1 việc duy nhất
-- Nhận data qua props
-- Không gọi API trực tiếp (để Page lo)
-
-**Ví dụ Button component:**
+### **src/utils/formatTime.js**
 ```javascript
-// components/common/Button.jsx
-function Button({ 
-  children, 
-  onClick, 
-  variant = 'primary', 
-  disabled = false 
-}) {
-  return (
-    <button 
-      className={`btn btn-${variant}`}
-      onClick={onClick}
-      disabled={disabled}
-    >
-      {children}
-    </button>
-  );
-}
+// Format seconds to MM:SS
+export const formatTime = (seconds) => {
+  if (isNaN(seconds) || seconds < 0) {
+    return '0:00';
+  }
 
-export default Button;
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+// Format to HH:MM:SS if needed
+export const formatTimeDetailed = (seconds) => {
+  if (isNaN(seconds) || seconds < 0) {
+    return '0:00:00';
+  }
+
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+
+  if (hrs > 0) {
+    return `${hrs}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }
+  
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
 ```
 
-**Sử dụng:**
+### **src/utils/audioHelper.js**
 ```javascript
-<Button variant="primary" onClick={handleSubmit}>
-  Lưu
-</Button>
-<Button variant="danger" onClick={handleDelete}>
-  Xóa
-</Button>
-```
-
----
-
-### **3. src/pages/** - Các trang chính
-
-**Đặc điểm:**
-- Kết hợp nhiều components
-- Gọi API qua services
-- Quản lý state phức tạp
-
-**Ví dụ LoginPage:**
-```javascript
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../services/authService';
-import Button from '../components/common/Button';
-import Input from '../components/common/Input';
-
-function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const data = await login(email, password);
-      localStorage.setItem('token', data.token);
-      navigate('/dashboard');
-    } catch (err) {
-      setError('Sai email hoặc mật khẩu');
-    }
+// Kiểm tra định dạng audio có được hỗ trợ không
+export const isAudioFormatSupported = (format) => {
+  const audio = new Audio();
+  const mimeTypes = {
+    mp3: 'audio/mpeg',
+    wav: 'audio/wav',
+    ogg: 'audio/ogg',
+    m4a: 'audio/mp4'
   };
+  
+  return audio.canPlayType(mimeTypes[format]) !== '';
+};
 
-  return (
-    <div className="login-page">
-      <form onSubmit={handleSubmit}>
-        <h1>Đăng nhập</h1>
-        {error && <p className="error">{error}</p>}
-        
-        <Input 
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="Email"
-        />
-        
-        <Input 
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Mật khẩu"
-        />
-        
-        <Button type="submit">Đăng nhập</Button>
-      </form>
-    </div>
-  );
-}
+// Preload audio
+export const preloadAudio = (url) => {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio();
+    audio.src = url;
+    audio.addEventListener('canplaythrough', () => resolve(audio));
+    audio.addEventListener('error', reject);
+    audio.load();
+  });
+};
 
-export default LoginPage;
+// Get audio metadata
+export const getAudioMetadata = (file) => {
+  return new Promise((resolve, reject) => {
+    const audio = new Audio();
+    const url = URL.createObjectURL(file);
+    
+    audio.src = url;
+    audio.addEventListener('loadedmetadata', () => {
+      resolve({
+        duration: audio.duration,
+        src: url
+      });
+      URL.revokeObjectURL(url);
+    });
+    audio.addEventListener('error', reject);
+  });
+};
 ```
 
 ---
 
-### **4. src/hooks/** - Custom Hooks
+## 🔄 Luồng hoạt động - Phát nhạc
 
-**Mục đích:** Tái sử dụng logic giữa các components
-
-**Ví dụ useFetch hook:**
-```javascript
-import { useState, useEffect } from 'react';
-
-function useFetch(fetchFunction) {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const result = await fetchFunction();
-        setData(result);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [fetchFunction]);
-
-  return { data, loading, error };
-}
-
-export default useFetch;
 ```
-
-**Sử dụng:**
-```javascript
-import useFetch from '../hooks/useFetch';
-import { getAllUsers } from '../services/userService';
-
-function UserPage() {
-  const { data: users, loading, error } = useFetch(getAllUsers);
-
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
-
-  return (
-    <div>
-      {users.map(user => <UserCard key={user.id} user={user} />)}
-    </div>
-  );
-}
+[1. User click vào bài hát]
+        ↓
+[2. Component gọi usePlayer().playSong(song)]
+        ↓
+[3. PlayerContext cập nhật state]
+   - setCurrentSong(song)
+   - audioRef.src = song.audioUrl
+        ↓
+[4. Audio element load file]
+   - Từ backend stream: /api/songs/{id}/stream
+   - Hoặc URL trực tiếp
+        ↓
+[5. audio.play() được gọi]
+        ↓
+[6. Event listeners update UI]
+   - timeupdate → update progress bar
+   - loadedmetadata → set duration
+   - ended → auto next song
+        ↓
+[7. UI tự động re-render]
+   - Player hiển thị thông tin bài hát
+   - Progress bar di chuyển
+   - Play button → Pause button
+        ↓
+[8. Backend ghi nhận]
+   - Increment play count
+   - Lưu lịch sử nghe nhạc
 ```
 
 ---
 
-### **5. src/context/** - State toàn cục
+## 🗄️ Database Schema (Backend)
 
-**Khi nào dùng Context:**
-- Thông tin user đăng nhập (dùng ở nhiều nơi)
-- Theme (dark/light mode)
-- Ngôn ngữ (i18n)
-
-**Ví dụ AuthContext:**
-```javascript
-import { createContext, useState, useContext } from 'react';
-
-const AuthContext = createContext();
-
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-
-  const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
-  };
-
-  return (
-    <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
-
-// Custom hook để dùng AuthContext
-export function useAuth() {
-  return useContext(AuthContext);
-}
-```
-
-**Sử dụng:**
-```javascript
-// Trong main.jsx
-import { AuthProvider } from './context/AuthContext';
-
-root.render(
-  <AuthProvider>
-    <App />
-  </AuthProvider>
+```sql
+-- Bảng Songs
+CREATE TABLE songs (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    artist VARCHAR(255),
+    album VARCHAR(255),
+    duration INT,                    -- Seconds
+    audio_url VARCHAR(500),          -- URL file nhạc
+    cover_url VARCHAR(500),          -- URL ảnh bìa
+    genre VARCHAR(100),
+    release_date DATE,
+    play_count INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-// Trong component bất kỳ
-import { useAuth } from '../context/AuthContext';
+-- Bảng Playlists
+CREATE TABLE playlists (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    cover_url VARCHAR(500),
+    is_public BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
-function Header() {
-  const { user, logout } = useAuth();
+-- Bảng Playlist_Songs (Many-to-Many)
+CREATE TABLE playlist_songs (
+    playlist_id BIGINT,
+    song_id BIGINT,
+    position INT,                    -- Thứ tự trong playlist
+    added_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (playlist_id, song_id),
+    FOREIGN KEY (playlist_id) REFERENCES playlists(id),
+    FOREIGN KEY (song_id) REFERENCES songs(id)
+);
 
-  return (
-    <header>
-      {user ? (
-        <>
-          <span>Xin chào {user.name}</span>
-          <button onClick={logout}>Đăng xuất</button>
-        </>
-      ) : (
-        <a href="/login">Đăng nhập</a>
-      )}
-    </header>
-  );
-}
+-- Bảng Favorites
+CREATE TABLE favorites (
+    user_id BIGINT,
+    song_id BIGINT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, song_id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (song_id) REFERENCES songs(id)
+);
+
+-- Bảng Listen History
+CREATE TABLE listen_history (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT,
+    song_id BIGINT,
+    listened_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (song_id) REFERENCES songs(id)
+);
 ```
 
 ---
 
-### **6. src/routes/** - Định tuyến
+## 🚀 Tính năng nâng cao (Optional)
 
-**Cài đặt React Router:**
-```bash
-npm install react-router-dom
-```
-
-**Cấu hình routes:**
+### 1. **Audio Visualizer**
 ```javascript
-// routes/AppRoutes.jsx
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import HomePage from '../pages/HomePage';
-import LoginPage from '../pages/LoginPage';
-import UserPage from '../pages/UserPage';
-import NotFoundPage from '../pages/NotFoundPage';
-import { useAuth } from '../context/AuthContext';
-
-// Route bảo vệ (cần đăng nhập)
-function ProtectedRoute({ children }) {
-  const { user } = useAuth();
-  return user ? children : <Navigate to="/login" />;
-}
-
-function AppRoutes() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        
-        {/* Route cần đăng nhập */}
-        <Route 
-          path="/users" 
-          element={
-            <ProtectedRoute>
-              <UserPage />
-            </ProtectedRoute>
-          } 
-        />
-        
-        {/* 404 Page */}
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
-
-export default AppRoutes;
+// Sử dụng Web Audio API
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioContext = new AudioContext();
+const analyser = audioContext.createAnalyser();
 ```
 
-**Sử dụng trong App.jsx:**
-```javascript
-import AppRoutes from './routes/AppRoutes';
-import { AuthProvider } from './context/AuthContext';
+### 2. **Lyrics Display**
+- Hiển thị lời bài hát theo thời gian
+- Format: LRC file
 
-function App() {
-  return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
-  );
-}
+### 3. **Queue Management**
+- Xem danh sách chờ
+- Kéo thả sắp xếp lại
+- Xóa khỏi queue
 
-export default App;
-```
+### 4. **Social Features**
+- Follow người dùng khác
+- Share playlist
+- Comment & Like
 
----
-
-### **7. src/utils/** - Hàm tiện ích
-
-**constants.js:**
-```javascript
-export const API_URL = 'http://localhost:8080/api';
-
-export const STATUS = {
-  PENDING: 'pending',
-  ACTIVE: 'active',
-  INACTIVE: 'inactive'
-};
-
-export const ROLES = {
-  ADMIN: 'ADMIN',
-  USER: 'USER'
-};
-```
-
-**formatDate.js:**
-```javascript
-export const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-};
-
-export const formatDateTime = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleString('vi-VN');
-};
-```
-
-**validation.js:**
-```javascript
-export const validateEmail = (email) => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return regex.test(email);
-};
-
-export const validatePhone = (phone) => {
-  const regex = /^(0|\+84)[0-9]{9}$/;
-  return regex.test(phone);
-};
-
-export const validatePassword = (password) => {
-  return password.length >= 6;
-};
-```
-
----
-
-## 🔐 File .env - Biến môi trường
-
-**Tạo file .env:**
-```
-VITE_API_URL=http://localhost:8080/api
-VITE_APP_NAME=MyApp
-VITE_TIMEOUT=10000
-```
-
-**⚠️ Lưu ý:** 
-- Biến trong Vite phải bắt đầu bằng `VITE_`
-- Không commit file `.env` lên git
-- Tạo file `.env.example` để team biết cần config gì
-
-**Sử dụng:**
-```javascript
-const API_URL = import.meta.env.VITE_API_URL;
-console.log(API_URL); // http://localhost:8080/api
-```
-
----
-
-## 🚀 Các lệnh thường dùng
-
-```bash
-# Cài dependencies
-npm install
-
-# Chạy dev server
-npm run dev
-
-# Build production
-npm run build
-
-# Preview build
-npm run preview
-
-# Cài thư viện mới
-npm install axios
-npm install react-router-dom
-npm install @mui/material
-
-# Xóa node_modules và cài lại
-rm -rf node_modules
-npm install
-```
-
----
-
-## 📊 Luồng xử lý Form (Tạo/Sửa User)
-
-```
-[1. User nhập form]
-        ↓
-[2. onChange event] → setState cho từng field
-        ↓
-[3. User click "Lưu"]
-        ↓
-[4. onSubmit event]
-        ↓
-[5. Validate dữ liệu]
-   ├─ Nếu lỗi → Hiển thị message
-   └─ Nếu OK → Tiếp tục
-        ↓
-[6. Gọi service.createUser(data)]
-        ↓
-[7. Axios POST request]
-        ↓
-[8. Spring Boot nhận request]
-   - Validate
-   - Lưu vào DB
-   - Trả về response
-        ↓
-[9. React nhận response]
-   ├─ Thành công → Hiển thị thông báo + redirect
-   └─ Lỗi → Hiển thị error message
-```
-
-**Code ví dụ:**
-```javascript
-function CreateUserPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: ''
-  });
-  const [errors, setErrors] = useState({});
-  const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.name) newErrors.name = 'Tên không được trống';
-    if (!validateEmail(formData.email)) {
-      newErrors.email = 'Email không hợp lệ';
-    }
-    return newErrors;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    const newErrors = validate();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    try {
-      await createUser(formData);
-      alert('Tạo user thành công!');
-      navigate('/users');
-    } catch (error) {
-      alert('Có lỗi xảy ra!');
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <input
-        name="name"
-        value={formData.name}
-        onChange={handleChange}
-        placeholder="Tên"
-      />
-      {errors.name && <span className="error">{errors.name}</span>}
-      
-      <input
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        placeholder="Email"
-      />
-      {errors.email && <span className="error">{errors.email}</span>}
-      
-      <button type="submit">Tạo User</button>
-    </form>
-  );
-}
-```
-
----
-
-## 🎨 Best Practices
-
-### ✅ **Nên làm:**
-
-1. **Tách logic rõ ràng:**
-   - Page: Quản lý state, gọi API
-   - Component: Chỉ hiển thị UI
-   - Service: Xử lý API calls
-
-2. **Đặt tên file:**
-   - Component: PascalCase (`UserCard.jsx`)
-   - Service/Utils: camelCase (`userService.js`)
-   - Constant: UPPER_SNAKE_CASE (`API_URL`)
-
-3. **Xử lý lỗi:**
-   ```javascript
-   try {
-     const data = await fetchData();
-   } catch (error) {
-     console.error('Error:', error);
-     setError(error.message);
-   }
-   ```
-
-4. **Loading state:**
-   ```javascript
-   if (loading) return <Spinner />;
-   if (error) return <ErrorMessage error={error} />;
-   return <DataComponent data={data} />;
-   ```
-
-### ❌ **Không nên:**
-
-1. Gọi API trực tiếp trong component
-2. Đặt tất cả code trong 1 file
-3. Hardcode API URL trong code
-4. Không xử lý lỗi
-5. Không có loading state
-
----
-
-## 📚 Tài nguyên học thêm
-
-- [React Official Docs](https://react.dev)
-- [Vite Documentation](https://vitejs.dev)
-- [React Router](https://reactrouter.com)
-- [Axios Documentation](https://axios-http.com)
-
----
-
-**Chúc bạn code hiệu quả! 💪**
+### 5. **Recommendation System**
+- Gợi ý dựa trên lịch s

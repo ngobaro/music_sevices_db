@@ -1,125 +1,91 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { login } from '../services/authService';
-import Input from '../components/common/Input';
-import Button from '../components/common/Button';
-import Card from '../components/common/Card';
-import './LoginPage.css';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import './AuthPages.css';
 
-const LoginPage = () => {
+function LoginPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    email: '',
+    username: '',
     password: ''
   });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors = {};
-
-    if (!formData.email) {
-      newErrors.email = 'Email là bắt buộc';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email không hợp lệ';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Mật khẩu là bắt buộc';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
-
-    try {
-      setLoading(true);
-      await login(formData);
+    setError('');
+    
+    // Mock authentication - Kiểm tra username và password
+    if (formData.username === 'admin' && formData.password === 'admin') {
+      // Đăng nhập thành công
+      localStorage.setItem('token', 'mock-token-123');
+      localStorage.setItem('user', JSON.stringify({
+        username: formData.username,
+        name: 'Admin User'
+      }));
+      
+      alert('Đăng nhập thành công!');
       navigate('/');
-    } catch (error) {
-      console.error('Login error:', error);
-      setErrors({
-        general: 'Đăng nhập thất bại. Vui lòng kiểm tra thông tin.'
-      });
-    } finally {
-      setLoading(false);
+      window.location.reload();
+    } else {
+      // Đăng nhập thất bại
+      setError('Username hoặc password không đúng!');
     }
   };
 
   return (
-    <div className="login-page">
-      <Card className="login-card">
+    <div className="auth-page">
+      <div className="auth-container">
+        <h1>🎵 Music Web</h1>
         <h2>Đăng nhập</h2>
-
+        
+        {error && (
+          <div className="error-message">
+            {error}
+          </div>
+        )}
+        
         <form onSubmit={handleSubmit}>
-          <Input
-            type="email"
-            name="email"
-            placeholder="Nhập email của bạn"
-            label="Email"
-            value={formData.email}
-            onChange={handleChange}
-            error={errors.email}
-            required
-          />
-
-          <Input
-            type="password"
-            name="password"
-            placeholder="Nhập mật khẩu"
-            label="Mật khẩu"
-            value={formData.password}
-            onChange={handleChange}
-            error={errors.password}
-            required
-          />
-
-          {errors.general && (
-            <div className="error-message">{errors.general}</div>
-          )}
-
-          <Button
-            type="submit"
-            variant="primary"
-            size="large"
-            disabled={loading}
-            className="login-btn"
-          >
-            {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-          </Button>
+          <div className="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({...formData, username: e.target.value})}
+              placeholder="Nhập username"
+              required
+              autoComplete="username"
+            />
+          </div>
+          
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              placeholder="Nhập password"
+              required
+              autoComplete="current-password"
+            />
+          </div>
+          
+          <button type="submit" className="btn-submit">
+            Đăng nhập
+          </button>
         </form>
-
-        <div className="login-footer">
-          <p>Chưa có tài khoản? <a href="/register">Đăng ký ngay</a></p>
-        </div>
-      </Card>
+        
+        {/* <div className="demo-credentials">
+          <p>🔑 Tài khoản demo:</p>
+          <p><strong>Username:</strong> admin</p>
+          <p><strong>Password:</strong> admin</p>
+        </div> */}
+        
+        <p className="auth-link">
+          Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
+        </p>
+      </div>
     </div>
   );
-};
+}
 
 export default LoginPage;
