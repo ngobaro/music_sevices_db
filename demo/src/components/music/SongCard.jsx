@@ -4,7 +4,7 @@ import './SongCard.css';
 
 function SongCard({ song, isPlaying = false }) {
   const { playSong, currentSong } = usePlayer();
-  
+
   // Kiểm tra xem bài hát này có đang được phát không
   const playing = isPlaying || (currentSong && currentSong.id === song.id);
 
@@ -24,7 +24,7 @@ function SongCard({ song, isPlaying = false }) {
             e.target.src = '/default-cover.png';
           }}
         />
-        
+
         <button
           className="play-button"
           onClick={handlePlayClick}
